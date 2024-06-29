@@ -3933,8 +3933,8 @@ var { defineMultiStyleConfig, definePartsStyle } = createMultiStyleConfigHelpers
 ]);
 var $size = cssVar("stepper-indicator-size");
 var $iconSize = cssVar("stepper-icon-size");
-var $titleFontSize = cssVar("stepper-title-font-size");
-var $descFontSize = cssVar("stepper-description-font-size");
+var $titlefontSize = cssVar("stepper-title-font-size");
+var $descfontSize = cssVar("stepper-description-font-size");
 var $accentColor = cssVar("stepper-accent-color");
 var baseStyle = definePartsStyle(({ colorScheme: c }) => ({
   stepper: {
@@ -3955,15 +3955,15 @@ var baseStyle = definePartsStyle(({ colorScheme: c }) => ({
     }
   },
   title: {
-    fontSize: $titleFontSize.reference,
+    fontSize: $titlefontSize.reference,
     fontWeight: "medium"
   },
   description: {
-    fontSize: $descFontSize.reference,
+    fontSize: $descfontSize.reference,
     color: "chakra-subtle-text"
   },
   number: {
-    fontSize: $titleFontSize.reference
+    fontSize: $titlefontSize.reference
   },
   step: {
     flexShrink: 0,
@@ -4031,32 +4031,32 @@ var stepperTheme = defineMultiStyleConfig({
       stepper: {
         [$size.variable]: "sizes.4",
         [$iconSize.variable]: "sizes.3",
-        [$titleFontSize.variable]: "fontSizes.xs",
-        [$descFontSize.variable]: "fontSizes.xs"
+        [$titlefontSize.variable]: "fontSizes.xs",
+        [$descfontSize.variable]: "fontSizes.xs"
       }
     }),
     sm: definePartsStyle({
       stepper: {
         [$size.variable]: "sizes.6",
         [$iconSize.variable]: "sizes.4",
-        [$titleFontSize.variable]: "fontSizes.sm",
-        [$descFontSize.variable]: "fontSizes.xs"
+        [$titlefontSize.variable]: "fontSizes.sm",
+        [$descfontSize.variable]: "fontSizes.xs"
       }
     }),
     md: definePartsStyle({
       stepper: {
         [$size.variable]: "sizes.8",
         [$iconSize.variable]: "sizes.5",
-        [$titleFontSize.variable]: "fontSizes.md",
-        [$descFontSize.variable]: "fontSizes.sm"
+        [$titlefontSize.variable]: "fontSizes.md",
+        [$descfontSize.variable]: "fontSizes.sm"
       }
     }),
     lg: definePartsStyle({
       stepper: {
         [$size.variable]: "sizes.10",
         [$iconSize.variable]: "sizes.6",
-        [$titleFontSize.variable]: "fontSizes.lg",
-        [$descFontSize.variable]: "fontSizes.md"
+        [$titlefontSize.variable]: "fontSizes.lg",
+        [$descfontSize.variable]: "fontSizes.md"
       }
     })
   },

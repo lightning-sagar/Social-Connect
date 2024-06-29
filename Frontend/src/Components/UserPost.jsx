@@ -21,7 +21,7 @@ function UserPost  ({postImg,postTitle,like,replies}) {
             <Flex flex={1} flexDirection={"column"} gap={2}>
                 <Flex justifyContent={"center"} w={"full"}>
                   <Flex w={"full"} alignItems={"center"}>
-                    <Text fontsize={"sm"} fontWeight={"bold"}>Mark Zuckerberg</Text>
+                    <Text fontSize={"sm"} fontWeight={"bold"}>Mark Zuckerberg</Text>
                     <Image src='/verified.png' w={4} h={4} ml={1}/>
                   </Flex>
                   <Flex gap={4} alignItems={"center"}>

@@ -2,73 +2,109 @@ import User from "../models/user.js";
 import bcrypt from "bcryptjs"
 import genereateTokenanssetcookie from "../utils/helper/cookies.js";
 import user from "../models/user.js";
+import generateTokenAndSetCookie from "../utils/helper/cookies.js";
+import { v2 as cloudinary } from "cloudinary";
+import mongoose from "mongoose";
 
-const getuserProfile = async(req,res)=>{
- try {
-    const {username} = req.params;
-    const user = await User.findOne({username}).select("-password").select("-updatedAt");
-    if(!user){
-        res.status(404).json({error:"User not found"});
+const getuserProfile = async (req, res) => {
+  const { query } = req.params;
+
+  try {
+    let user;
+    if(mongoose.Types.ObjectId.isValid(query)){
+      user = await User.findById(query).select("-password -updatedAt");
     }
+    else{
+      user = await User.findOne({ username: query }).select("-password -updatedAt");
+    }
+    
+    if (!user) {
+      return res.status(404).json({ error: "User not found" });
+    }
+    
     res.status(200).json(user);
- } catch (error) {
-    console.log(error);
- }   
-}
-const signupuser = async (req, res) => {
-	try {
-		const { name, email, username, password } = req.body;
-        console.log(name, email, username, password)
-		const user = await User.findOne({ $or: [{ email }, { username }] });
-
-		if (user) {
-			return res.status(400).json({ error: "User already exists" });
-		}
-		const salt = await bcrypt.genSalt(10);
-		const hashedPassword = await bcrypt.hash(password, salt);
-
-		const newUser = new User({
-			name,
-			email,
-			username,
-			password: hashedPassword,
-		});
-		await newUser.save();
-
-		if (newUser) {
-			generateTokenAndSetCookie(newUser._id, res);
-
-			res.status(201).json({
-				_id: newUser._id,
-				name: newUser.name,
-				email: newUser.email,
-				username: newUser.username,
-				bio: newUser.bio,
-				profilePic: newUser.profilePic,
-			});
-		} else {
-			res.status(400).json({ error: "Invalid user data" });
-		}
-	} catch (err) {
-		res.status(500).json({ error: err.message });
-		console.log("Error in signupUser: ", err.message);
-	}
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
 };
-  
-  const loginuser = async(req,res)=>{
+
+const signupuser = async (req, res) => {
     try {
-        const {username,password}=req.body;
-        const user = await User.findOne({username});
-        const isPasswordCorrect = user && (await bcrypt.compare(password,user?.password || ""));
-        if(!user || !isPasswordCorrect){
-            res.status(400).json({error:"Invalid credentials"});
-        }
-            genereateTokenanssetcookie(user._id,res);
-            res.status(200).json(user);
-    } catch (error) {
-        console.error(error);
+      const { name, email, username, password } = req.body;
+      console.log(name, email, username, password);
+      const user = await User.findOne({ $or: [{ email }, { username }] });
+  
+      if (user) {
+        return res.status(400).json({ error: "User already exists" });
+      }
+  
+      const salt = await bcrypt.genSalt(10);
+      const hashedPassword = await bcrypt.hash(password, salt);
+  
+      const newUser = new User({
+        name,
+        email,
+        username,
+        password: hashedPassword,
+      });
+  
+      await newUser.save();
+  
+      if (newUser) {
+        generateTokenAndSetCookie(newUser._id, res);
+  
+        res.status(201).json({
+          _id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          username: newUser.username,
+          bio: newUser.bio,
+          profilePic: newUser.profilePic,
+        });
+      } else {
+        res.status(400).json({ error: "Invalid user data" });
+      }
+    } catch (err) {
+      console.log("Error in signupUser:", err.message);
+      res.status(500).json({ error: err.message });
     }
-}
+  };
+  
+  const loginuser = async (req, res) => {
+    try {
+      const { username, password } = req.body;
+      console.log(username, password, "loginuser");
+  
+      const user = await User.findOne({ username });
+      console.log(user, "found");
+  
+      if (!user) {
+        return res.status(400).json({ error: 'Invalid credentials no user' });
+      }
+  
+      const isPasswordCorrect = await bcrypt.compare(password, user.password);
+  
+      if (!isPasswordCorrect) {
+        return res.status(400).json({ error: 'Invalid credentials no pass' });
+      }
+  
+      generateTokenAndSetCookie(user._id, res);
+  
+      res.status(200).json({
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+        username: user.username,
+        bio: user.bio,
+        profilePic: user.profilePic,
+      });
+    } catch (error) {
+      console.error('Error in loginuser:', error);
+      res.status(500).json({ error: 'Internal Server Error' });
+    }
+  };
+  
 const logoutuser = async(req,res)=>{
     try {
         res.cookie("jwt","",{maxAge:1});
@@ -77,36 +113,43 @@ const logoutuser = async(req,res)=>{
         console.error(error);
     }
 }
-const followUnFollow = async(req,res)=>{
-    try {
-        const {userId}=req.params;
-        const userToModify = await User.findById(userId);
-        if(!userToModify){
-            res.status(404).json({error:"User not found"});
-        }
-        const currentUser = await User.findById(req.user._id);
-        if(id === req.user._id.toString()){
-            res.status(400).json({error:"You cannot follow yourself"});
-        }
-        const isFollowing = currentUser.followers.includes(id);
-        if(isFollowing){
-            //unfollow
-            await user.findByIdAndUpdate(req.user._id,{$pull:{followers:id}});
-            await user.findByIdAndUpdate(id,{$pull:{following:req.user._id}});
-            res.status(200).json(user);
-        }else{
-            //follow
-            await user.findByIdAndUpdate(req.user._id,{$push:{followers:id}});
-            await user.findByIdAndUpdate(id,{$push:{following:req.user._id}});
-            res.status(200).json(user);         
-        }
-    } catch (error) {
-        console.error(error);
-    }   
-}
+const followUnFollow = async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const id = req.user._id.toString();
+    const userToModify = await User.findById(userId);
+    if (!userToModify) {
+      return res.status(404).json({ error: "User not found" });
+    }
+
+    if (id === userId) {
+      return res.status(400).json({ error: "You cannot follow yourself" });
+    }
+
+    const currentUser = await User.findById(req.user._id);
+    const isFollowing = userToModify.followers.includes(id);
+
+    if (isFollowing) {
+      // unfollow
+      await User.findByIdAndUpdate(userId, { $pull: { followers: id } });
+      await User.findByIdAndUpdate(id, { $pull: { following: userId } });
+      return res.status(200).json({ message: "Unfollowed successfully" });
+    } else {
+      // follow
+      await User.findByIdAndUpdate(userId, { $push: { followers: id } });
+      await User.findByIdAndUpdate(id, { $push: { following: userId } });
+      return res.status(200).json({ message: "Followed successfully" });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "Internal server error" });
+  }
+};
+
 const updateuser = async(req,res)=>{
     try {
-        const {name,username,email,password,profilePic,bio}=req.body;
+        const {name,username,email,bio}=req.body;
+        let {profilePic,password}=req.body;
         const userId = req.user._id;
         const user = await User.findById(userId);
         if(req.params.id !== userId.toString()){
@@ -117,16 +160,28 @@ const updateuser = async(req,res)=>{
         }
         if (password) {
             const salt = await bcrypt.genSalt(10);
-            const hashedPassword = await bcrypt.hash(password || user.password, salt);
+            password = await bcrypt.hash(password || user.password, salt);
+        }
+        if(profilePic){
+          if(user.profilePic){
+            await cloudinary.uploader.destroy(user.profilePic.split("/").pop().split(".")[0])
+          }
+
+          const uplodedRes = await cloudinary.uploader.upload(profilePic)
+          console.log(uplodedRes)
+          profilePic = uplodedRes.secure_url
         }
         const updatedUser = await User.findByIdAndUpdate(userId,{
             name:name || user.name,
             username:username || user.username,
             email:email || user.email,
-            password:hashedPassword || user.password,
+            password:password || user.password,
             profilePic:profilePic || user.profilePic,
             bio:bio || user.bio
         },{new:true});
+
+        //set pass null
+        updatedUser.password = null;
         if(updatedUser){
             res.status(200).json(updatedUser);
         }else{

@@ -1,6 +1,6 @@
 import User from "../models/user.js";
 import Post from "../models/post.js";
-
+import { v2 as cloudinary } from "cloudinary";
 const getFeedPosts = async(req,res)=>{
     try {
         const user = await User.findById(req.user._id);
@@ -18,57 +18,74 @@ const getPosts = async(req,res)=>{
 
         const posts = await Post.findbtId(id);
 
-        if(!posts) return res.status(400).json({message:"Post not found"});
+        if(!posts) return res.status(400).json({error:"Post not found"});
 
         res.status(200).json(posts);
     } catch (error) {
         console.error(error);
     }
 }
-const createPost = async(req,res)=>{
-    try {
-        const {posted_by,text,img} = req.body;
-        if(!text||!img) return res.status(400).json({message:"All fields are required"});
-        const user = await User.findById(posted_by);
-        if(!user) return res.status(400).json({message:"User not found"});
 
-        if(user._id.toString() !== req.user._id.toString()){
-            return res.status(400).json({message:"not authorized"});
-        }
-        const maxWords = 500;
-        if(text.lenght > maxWords){
-            res.status(400).json({message:"Text must be less than 500 words"});
-        }
-        const newPost = new Post({
-            posted_by,
-            text,
-            img
-        });
-        await newPost.save();
-        res.status(201).json(newPost);
-    } catch (error) {
-        console.error(error);
-    }
-}
+  
+const createPost = async (req, res) => {
+	try {
+        console.log(req.body)
+		const { postedBy, text } = req.body;
+		let { img } = req.body;
+
+		if (!postedBy || !text) {
+			return res.status(400).json({ error: "Postedby and text fields are required" });
+		}
+
+		const user = await User.findById(postedBy);
+		if (!user) {
+			return res.status(404).json({ error: "User not found" });
+		}
+
+		if (user._id.toString() !== req.user._id.toString()) {
+			return res.status(401).json({ error: "Unauthorized to create post" });
+		}
+
+		const maxLength = 500;
+		if (text.length > maxLength) {
+			return res.status(400).json({ error: `Text must be less than ${maxLength} characters` });
+		}
+
+		if (img) {
+			const uploadedResponse = await cloudinary.uploader.upload(img);
+			img = uploadedResponse.secure_url;
+		}
+
+		const newPost = new Post({ posted_by: postedBy, text, img });
+		await newPost.save();
+
+		res.status(201).json(newPost);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+		console.log(err);
+	}
+};
+
 const deletePost = async(req,res)=>{
     try {
         const {id} = req.params;
         const post = await Post.findById(id);
-        if(!post) return res.status(400).json({message:"Post not found"});
+        if(!post) return res.status(400).json({error:"Post not found"});
         if(post.posted_by.toString() !== req.user._id.toString()){
-            return res.status(400).json({message:"not authorized"});
+            return res.status(400).json({error:"not authorized"});
         }
         await Post.findByIdAndDelete(id);
         res.status(200).json({message:"Post deleted successfully"});
     } catch (error) {
         console.error(error);
+        res.status(500).json({error:"Server error"});
     }
 }
 const likeUnLikePost = async(req,res)=>{
     try {
         const {id:postId} = req.params;
         const post = await Post.findById(id);
-        if(!post) return res.status(400).json({message:"Post not found"});
+        if(!post) return res.status(400).json({error:"Post not found"});
 
         const userLikePost = post.likes.includes(req.user._id);
 
@@ -87,6 +104,7 @@ const likeUnLikePost = async(req,res)=>{
         res.status(200).json({message:"Post liked successfully"});
     } catch (error) {
         console.error(error);
+        res.status(500).json({error:"Server error"});
     }
 }
 const relpyPost = async(req,res)=>{
@@ -97,9 +115,9 @@ const relpyPost = async(req,res)=>{
         const userProfilepic = req.user.profilePic;
         const username = req.user.username;
         
-        if(!text) return res.status(400).json({message:"All fields are required"});
+        if(!text) return res.status(400).json({error:"All fields are required"});
         const post = await Post.findById(postId);
-        if(!post) return res.status(400).json({message:"Post not found"});
+        if(!post) return res.status(400).json({error:"Post not found"});
 
         const newReply = {
             userId,
@@ -113,6 +131,7 @@ const relpyPost = async(req,res)=>{
         res.status(200).json({message:"Reply added successfully"});
     } catch (error) {
         console.error(error);
+        res.status(500).json({error:"Server error"});
     }
 }
 

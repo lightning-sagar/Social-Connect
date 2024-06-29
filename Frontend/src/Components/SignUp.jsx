@@ -19,11 +19,13 @@ import {
   import { ViewIcon, ViewOffIcon } from '@chakra-ui/icons';
   import { useSetRecoilState } from 'recoil';
   import authScreenAtom from '../Atom/AuthAtom';
+import userAtom from '../Atom/UserAtom';
     
   export default function SignupCard() {
     const [showPassword, setShowPassword] = useState(false);
     const setAuthScreenState = useSetRecoilState(authScreenAtom);
     const toast = useToast();
+    const setUser = useSetRecoilState(userAtom);
     const [Inputs,setInput] = useState({
       name: '',
       email: '',
@@ -33,12 +35,12 @@ import {
     const handlesignup = async () => {
       console.log(Inputs)
       try {
-        const res = await fetch('/api/users/signup', {
-          method: 'POST',
+        const res = await fetch("/api/users/signup",{
+          method: "POST",
           headers: {
             'Content-Type': 'application/json'
           },
-          body: JSON.stringify({Inputs}),
+          body: JSON.stringify(Inputs),
         })
         const data = await res.json();
         console.log(data)
@@ -55,6 +57,7 @@ import {
           return;
         }
         localStorage.setItem('user-threads',JSON.stringify(data))
+        setUser(data)
       } catch (error) {
         console.error(error)
       }
