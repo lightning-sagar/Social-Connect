@@ -4,12 +4,16 @@ import { BsThreeDots } from "react-icons/bs";
 import Action from "./Action";
 import { useEffect, useState } from "react";
 import useShowToast from "../hooks/useShowToast";
+import {formatDistanceToNow} from "date-fns";
+import { DeleteIcon } from "@chakra-ui/icons";
+import userAtom from "../Atom/UserAtom";
+import { useRecoilValue } from "recoil";
 
 function ShowPost({ post, posted_by }) {
   const showToast = useShowToast();
-  const [liked, setLiked] = useState(false);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
+  const currentuser = useRecoilValue(userAtom);
   useEffect(() => {
       const getuser = async() => {
         try {
@@ -26,13 +30,33 @@ function ShowPost({ post, posted_by }) {
       }
       getuser();
   },[posted_by, showToast])  
+  
+  const handleDeletePost = async(e) =>{
+    try {
+      e.preventDefault()
+      if(!window.confirm("Are you sure you want to delete this post?")) return;
+      const res = await fetch(`/api/post/${post._id}`, {
+        method: "DELETE",
+      })
+
+      const data = await res.json();
+      if(data.error){
+        showToast("Error", data.error, "error");
+        return;
+      }
+      showToast("Success", data.message, "success");
+
+    } catch (error) {
+      showToast("Error", error, "error");
+    }
+  }
 
   if (!post) {
     return <Text>No post available</Text>; 
   }
   if(!user ) return;
   return (
-    <Link to={`/${user.username}/post/${post.id}`}>
+    <Link to={`/${user.username}/post/${post._id}`}>
       <Flex gap={3} mb={4} py={5}>
         <Flex flexDirection={"column"} alignItems={"center"}>
           <Avatar size="md" name={user?.username} src={user?.profilePic} bg={"gray.light"} onClick={(e)=>{
@@ -45,14 +69,40 @@ function ShowPost({ post, posted_by }) {
                 <Text textAlign={"center"}>🥱</Text>
             )}
             {post.replies[0] && (
-            <Avatar size="xs" name={post.replies[0].username} src={post.replies[0].userPic} position={"absolute"} top="0" left={"15px"} padding={"2px"} />
-            )}
-            {post.replies[1] && (
-            <Avatar size="xs" name={post.replies[1].username} src={post.replies[1].userPic} position={"absolute"} top="0" left={"15px"} padding={"2px"} />
-            )}
-            {post.replies[2] && (
-            <Avatar size="xs" name={post.replies[2].username} src={post.replies[2].userPic} position={"absolute"} top="0" left={"15px"} padding={"2px"} />
-            )}
+							<Avatar
+								size='xs'
+								name='John doe'
+								src={post.replies[0].userPic}
+								position={"absolute"}
+								top={"0px"}
+								left='15px'
+								padding={"2px"}
+							/>
+						)}
+
+						{post.replies[1] && (
+							<Avatar
+								size='xs'
+								name='John doe'
+								src={post.replies[1].userPic}
+								position={"absolute"}
+								bottom={"0px"}
+								right='-5px'
+								padding={"2px"}
+							/>
+						)}
+
+						{post.replies[2] && (
+							<Avatar
+								size='xs'
+								name='John doe'
+								src={post.replies[2].userPic}
+								position={"absolute"}
+								bottom={"0px"}
+								left='4px'
+								padding={"2px"}
+							/>
+						)}
           </Box>
         </Flex>
         <Flex flex={1} flexDirection={"column"} gap={2}>
@@ -65,8 +115,12 @@ function ShowPost({ post, posted_by }) {
               <Image src='/verified.png' w={4} h={4} ml={1} />
             </Flex>
             <Flex gap={4} alignItems={"center"}>
-              <Text fontStyle={"sm"} color={"gray.light"}>1d</Text>
-              <BsThreeDots />
+              <Text fontSize={"xs"} width={36} textAlign={"right"} color={"gray.light"}>
+                {formatDistanceToNow(new Date(post.createdAt))} ago
+              </Text>
+              {currentuser?._id === user._id && (
+              <DeleteIcon cursor={"pointer"} size={20} onClick={handleDeletePost} />
+              )}
             </Flex>
           </Flex>
           <Text fontSize={"sm"}>{post.text}</Text>
@@ -76,13 +130,9 @@ function ShowPost({ post, posted_by }) {
             </Box>
           )}
           <Flex gap={3} my={1}>
-            <Action liked={liked} setLiked={setLiked} /> {/* Fix the setLiked prop */}
+            <Action post={post} /> {/* Fix the setLiked prop */}
           </Flex>
-          <Flex gap={2} alignItems={"center"}>
-            <Text color={"gray.light"} fontSize={"sm"}>{post.replies} Replies</Text>
-            <Box w={0.5} h={0.5} borderRadius={"full"} bg={"gray.light"} />
-            <Text color={"gray.light"} fontSize={"sm"}>{post.likes} Like</Text>
-          </Flex>
+          
         </Flex>
       </Flex>
     </Link>

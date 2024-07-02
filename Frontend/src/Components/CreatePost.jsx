@@ -59,7 +59,7 @@ function CreatePost() {
         body: JSON.stringify({
           text: postText,
           img: imgUrl,
-          postedBy: currentuser._id,
+          posted_by: currentuser._id,
         }),
       });
 

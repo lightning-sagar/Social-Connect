@@ -1,38 +1,46 @@
 import { useEffect, useState } from "react";
 import UserHeader from "../Components/UserHeader";
-import ShowPost from "../Components/ShowPost"; // Correct component import
+import ShowPost from "../Components/ShowPost";
 import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { Flex, Spinner } from "@chakra-ui/react";
+import getuserProfile from "../hooks/getuserProfile";
 
 function Userpage() {
-  const [user, setUser] = useState(null);
+  const { user, loading } = getuserProfile();
   const { username } = useParams();
   const showToast = useShowToast();
-  const [loading, setLoading] = useState(true);
+  const [posts, setPosts] = useState([]);
+  const [fetchingPost, setFetchingPost] = useState(true);
 
   useEffect(() => {
-    const getUser = async () => {
+    const getPosts = async () => {
+      setFetchingPost(true);
       try {
-        const res = await fetch(`/api/users/profile/${username}`);
+        console.log(username);
+        const res = await fetch(`/api/post/user/${username}`);
         const data = await res.json();
+        console.log(data);
         if (data.error) {
           showToast("Error", data.error, "error");
+        } else {
+          setPosts(data);
         }
-        setUser(data);
       } catch (error) {
-        showToast("Error", error, "error");
+        showToast("Error", error.message, "error");
+        setPosts([]);
       } finally {
-        setLoading(false);
+        setFetchingPost(false);
       }
     };
-    getUser();
+
+    getPosts();
   }, [username, showToast]);
 
   if (loading) {
     return (
       <Flex justifyContent={"center"} alignItems={"center"} h={"full"}>
-        <Spinner size='xl' /> 
+        <Spinner size='xl' />
       </Flex>
     );
   }
@@ -44,10 +52,14 @@ function Userpage() {
   }
 
   return (
-    <> 
-      {user && <UserHeader user={user} />}
-      {user.posts && user.posts.map(post => (
-        <ShowPost key={post.id} post={post} userId={user._id} />
+    <>
+      { <UserHeader user={user} />}
+       { !fetchingPost && posts.length ===0 && <h1>No posts available</h1>}
+       { fetchingPost && <Flex justifyContent={"center"} my={12}>
+        <Spinner size='xl' />
+      </Flex>}
+      {posts.map((post) => (
+        <ShowPost key={post._id} post={post} posted_by={post.posted_by} />
       ))}
     </>
   );

@@ -6,14 +6,17 @@ import { useRecoilValue } from "recoil";
 import userAtom from "../Atom/UserAtom";
 import { Link as RouterLink } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
-
 const UserHeader = ({ user }) => {
   const currentuser = useRecoilValue(userAtom);
   const toast = useToast();
-  console.log(user,"user")
-  const [following, setFollowing] = useState(user.followers.includes(currentuser?._id));
-  const [updating, setUpdating] = useState(false);
   const showToast = useShowToast();
+  const [following, setFollowing] = useState(() => {
+    if (currentuser) {
+      return user.followers.includes(currentuser._id);
+    }
+    return false;
+  });
+  const [updating, setUpdating] = useState(false);
 
   const followHandler = async () => {
     if (!currentuser) {
@@ -44,10 +47,10 @@ const UserHeader = ({ user }) => {
         user.followers.pop();
       } else {
         showToast("Success", `${user.name} followed successfully`, "success");
-        user.followers.push(currentuser?._id);
+        user.followers.push(currentuser._id);
       }
     } catch (error) {
-      showToast("Error", error, "error");
+      showToast("Error", error.message, "error");
     } finally {
       setUpdating(false);
     }
@@ -118,7 +121,7 @@ const UserHeader = ({ user }) => {
       )}
       <Flex w="full" alignItems="center">
         <Flex alignItems="center" gap={2}>
-          <Text color="gray.light">{user.followers.length} followers</Text>
+          <Text color="gray.light">{user?.followers?.length} followers</Text>
           <Box h={1} w={1} bg="gray.light" borderRadius="full"></Box>
           <Link color="gray.light">Instagram.com</Link>
         </Flex>
@@ -151,5 +154,6 @@ const UserHeader = ({ user }) => {
     </VStack>
   );
 };
+
 
 export default UserHeader;
