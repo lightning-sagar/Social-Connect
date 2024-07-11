@@ -2,7 +2,7 @@ import {Server} from "socket.io"
 import http from "http"
 import express from "express"
 import Message from "../models/message.js"  
-import Conservation from "../models/Conservation.js"
+import Conservation from "../models/conservation.js"
 
 const app = express()
 const server = http.createServer(app)
