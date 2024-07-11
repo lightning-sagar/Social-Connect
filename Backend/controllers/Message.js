@@ -1,5 +1,5 @@
 import Conservation from "../models/Conservation.js";
-import Message from "../models/Message.js";
+import Message from "../models/message.js";
 import { getRecipientSocketId, io } from "../socket/socket.js";
 import {v2 as cloudinary} from "cloudinary"
 
