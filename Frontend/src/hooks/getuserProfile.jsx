@@ -12,12 +12,17 @@ function getuserProfile() {
   useEffect(() => {
     const getUser = async () => {
         try {
-            console.log(username)
           const res = await fetch(`/api/users/profile/${username}`);
           const data = await res.json();
           if (data.error) {
             showToast("Error", data.error, "error");
-          } else {
+          }
+          console.log(data.isFrozen);
+          if(data.isFrozen){
+            setUser(null);
+            return 
+          }
+          else {
             setUser(data);
           }
         } catch (error) {

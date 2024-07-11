@@ -1,6 +1,6 @@
 import express from "express";
 import protectRoute from "../middleware/protectRoute.js";
-import {createPost,getPosts,deletePost,likeUnLikePost,relpyPost,getFeedPosts, getuserPost} from "../controllers/post.js";
+import {createPost,getPosts,deletePost,likeUnLikePost,relpyPost,getFeedPosts, getuserPost, deleteReply} from "../controllers/post.js";
 const router = express.Router();
 
 
@@ -9,6 +9,7 @@ router.get('/:id',getPosts);
 router.get('/user/:username',getuserPost);
 router.post('/create', protectRoute,createPost);
 router.delete('/:id',protectRoute,deletePost);
+// router.delete('/:pId/:rId',protectRoute,deleteReply);
 router.put('/like/:id',protectRoute,likeUnLikePost);
 router.put('/reply/:id', protectRoute, relpyPost);
 

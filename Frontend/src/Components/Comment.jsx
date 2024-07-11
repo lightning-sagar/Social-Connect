@@ -1,24 +1,25 @@
+import { DeleteIcon } from "@chakra-ui/icons"
 import { Avatar, Divider, Flex } from "@chakra-ui/react"
-import { useState } from "react"
 import { Text } from "@chakra-ui/react"
-import { BsThreeDots } from "react-icons/bs"
-import Action from "./Action"
+import userAtom from "../Atom/UserAtom"
+import { useRecoilValue } from "recoil"
+import useShowToast from "../hooks/useShowToast"
 
-function Comment({  reply }) {
+function Comment({  reply,lastReply }) {
+  const currentUser = useRecoilValue(userAtom)
   return ( 
     <>
         <Flex gap={4} py={2} my={2} w={"full"}>
-            <Avatar src={reply.userPic} name="Mark Zuckerberg" size="sm" />
+            <Avatar src={reply.userPic || reply.reply.userPic} name={reply.name} size="sm" />
             <Flex gap={1} w={"full"} flexDirection={"column"}>
                 <Flex w={"full"} justifyContent={"space-between"} alignItems={"center"}>
-                    <Text fontSize={"sm"} fontWeight={"bold"}>{reply.username}</Text>
-                     
+                    <Text fontSize={"sm"} fontWeight={"bold"}>{reply.username || reply.reply.username}</Text>
                 </Flex>
-                <Text>{reply.text}</Text>
+                <Text>{reply.text || reply.reply.text}</Text>
                  
             </Flex>
         </Flex>
-        <Divider />
+        {!lastReply ? <Divider /> : null}
     </>
   )
 }

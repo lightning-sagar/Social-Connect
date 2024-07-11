@@ -7,11 +7,13 @@ import useShowToast from "../hooks/useShowToast";
 import {formatDistanceToNow} from "date-fns";
 import { DeleteIcon } from "@chakra-ui/icons";
 import userAtom from "../Atom/UserAtom";
-import { useRecoilValue } from "recoil";
+import { useRecoilState, useRecoilValue } from "recoil";
+import postsAtom from "../Atom/postsAtom";
 
 function ShowPost({ post, posted_by }) {
   const showToast = useShowToast();
   const [user, setUser] = useState(null);
+  const [posts,setPosts] = useRecoilState(postsAtom)
   const navigate = useNavigate();
   const currentuser = useRecoilValue(userAtom);
   useEffect(() => {
@@ -45,7 +47,7 @@ function ShowPost({ post, posted_by }) {
         return;
       }
       showToast("Success", data.message, "success");
-
+      setPosts(post.filter((p)=>p._id !== post._id))
     } catch (error) {
       showToast("Error", error, "error");
     }
@@ -130,7 +132,7 @@ function ShowPost({ post, posted_by }) {
             </Box>
           )}
           <Flex gap={3} my={1}>
-            <Action post={post} /> {/* Fix the setLiked prop */}
+            <Action post={post} />  
           </Flex>
           
         </Flex>

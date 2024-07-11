@@ -13,8 +13,8 @@ import {
 import { useRef, useState } from 'react';
 import { useRecoilState, useRecoilValue } from 'recoil';
 import userAtom from '../Atom/UserAtom';
-import usePreviewImg from '../hooks/usePreviewImg';
-import useShowToast from '../hooks/useShowToast';
+import usePreviewImg from '../hooks/usePreviewImg.jsx';
+import useShowToast from '../hooks/useShowToast.jsx';
 
 export default function UpdatePage() {
   const [user, setUsers] = useRecoilState(userAtom);

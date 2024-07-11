@@ -21,19 +21,23 @@ import { useRef, useState } from 'react';
 import usePreviewImg from '../hooks/usePreviewImg';
 import { BsFillImageFill } from 'react-icons/bs';
 import useShowToast from '../hooks/useShowToast';
-import { useRecoilValue } from 'recoil';
+import { useRecoilState, useRecoilValue } from 'recoil';
 import userAtom from '../Atom/UserAtom';
+import postsAtom from '../Atom/postsAtom';
+import { useParams } from 'react-router-dom';
 
 function CreatePost() {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const ImageRef = useRef(null);
   const { handleImageChange, imgUrl, setImgUrl } = usePreviewImg();
   const maxWords = 550;
+  const [posts, setPosts] = useRecoilState(postsAtom);
   const [postText, setPostText] = useState('');
   const showToast = useShowToast();
   const [remainingChars, setRemainingChars] = useState(maxWords);
   const currentuser = useRecoilValue(userAtom);
   const [uploading, setUploading] = useState(false);
+  const {username} = useParams();
 
   const handleTextChange = (e) => {
     const { value } = e.target;
@@ -66,8 +70,12 @@ function CreatePost() {
       const data = await response.json();
       if (data.error) {
         showToast('Error', data.error, 'error');
+        return;
       } else {
         showToast('Success', 'Post created successfully', 'success');
+        if(username === currentuser.username){
+          setPosts([data, ...posts]);
+        }
         setPostText('');
         setImgUrl(null);
         onClose();

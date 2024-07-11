@@ -35,6 +35,10 @@ const userSchema = new mongoose.Schema({
         type: String,
         default: "",
     },
+    isFrozen:{
+        type:Boolean,
+        default:false
+    }
 },{timestamps: true});
 
 export default mongoose.model("User", userSchema)

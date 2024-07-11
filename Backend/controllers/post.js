@@ -12,19 +12,22 @@ const getFeedPosts = async(req,res)=>{
         console.error(error);
     }
 }
-const getPosts = async(req,res)=>{
-    try {
-        const id = req.params;
+const getPosts = async (req, res) => {
+	try {
+		const post = await Post.findById(req.params.id);
+        
+		if (!post) {
+			return res.status(404).json({ error: "Post not found" });
+		}
+        // filter out the frozen user's posts
+        
 
-        const posts = await Post.findbtId(id);
 
-        if(!posts) return res.status(400).json({error:"Post not found"});
-
-        res.status(200).json(posts);
-    } catch (error) {
-        console.error(error);
-    }
-}
+		res.status(200).json(post);
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+	}
+};
 
 const getuserPost = async(req,res)=>{
     const {username} = req.params;
@@ -32,8 +35,11 @@ const getuserPost = async(req,res)=>{
     try {
         console.log(username,"username")
         const user  = await User.findOne({username:username});
-        console.log(user,"finded")
-        if(!user) return res.status(400).json({error:"User not found"});
+         
+        if(!user) return res.status(400).json({error:"User not found"}); 
+
+        console.log(user.isFrozen)
+        if(user.isFrozen) return res.status(400).json({error:"User has been frozen"});
         const posts = await Post.find({posted_by:user._id}).sort({createdAt:-1});
         console.log(posts)
         res.status(200).json(posts);
@@ -80,6 +86,27 @@ const createPost = async (req, res) => {
 		console.log(err);
 	}
 };
+
+const deleteReply = async(req,res)=>{
+    try {
+        const {rId,pId} = req.params;
+        const post = await Post.findById(pId);
+        if(!post) return res.status(400).json({error:"Post not found"});
+
+        const reply = post.replies.id(rId);
+        if(!reply) return res.status(400).json({error:"Reply not found"});
+        if(reply.posted_by.toString() !== req.user._id.toString()){
+            return res.status(400).json({error:"not authorized"});
+        }
+
+        post.replies.pull(rId);
+        await post.save();
+        res.status(200).json({message:"Reply deleted successfully"});
+        
+    } catch (error) {
+        res.status(500).json({error:"Server error"});
+    }
+} 
 
 const deletePost = async(req,res)=>{
     try {
@@ -151,7 +178,7 @@ const relpyPost = async (req, res) => {
         post.replies.push(newReply);
         await post.save();
 
-        res.status(200).json({ message: "Reply added successfully", reply: newReply });
+        res.status(200).json({ reply: newReply });
     } catch (error) {
         console.error(error);
         res.status(500).json({ error: "Server error" });
@@ -159,4 +186,4 @@ const relpyPost = async (req, res) => {
 };
 
 
-export {createPost,getPosts,getuserPost,deletePost,likeUnLikePost,relpyPost,getFeedPosts}
+export {createPost,getPosts,getuserPost,deletePost,likeUnLikePost,relpyPost,getFeedPosts,deleteReply}

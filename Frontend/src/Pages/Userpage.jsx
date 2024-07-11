@@ -5,37 +5,43 @@ import { useParams } from "react-router-dom";
 import useShowToast from "../hooks/useShowToast";
 import { Flex, Spinner } from "@chakra-ui/react";
 import getuserProfile from "../hooks/getuserProfile";
+import { useRecoilState } from "recoil";
+import postsAtom from "../Atom/postsAtom"
 
 function Userpage() {
   const { user, loading } = getuserProfile();
   const { username } = useParams();
   const showToast = useShowToast();
-  const [posts, setPosts] = useState([]);
+  const [posts, setPosts] = useRecoilState(postsAtom);
   const [fetchingPost, setFetchingPost] = useState(true);
 
   useEffect(() => {
+    if(!user) return
     const getPosts = async () => {
       setFetchingPost(true);
       try {
-        console.log(username);
         const res = await fetch(`/api/post/user/${username}`);
         const data = await res.json();
-        console.log(data);
         if (data.error) {
           showToast("Error", data.error, "error");
-        } else {
+        } 
+        console.log(data.isFrozen)
+        if(data.isFrozen){
+          setPosts(null);
+          return
+        }
+        else {
           setPosts(data);
         }
       } catch (error) {
         showToast("Error", error.message, "error");
-        setPosts([]);
       } finally {
         setFetchingPost(false);
       }
     };
 
     getPosts();
-  }, [username, showToast]);
+  }, [username, showToast, setPosts,user]);
 
   if (loading) {
     return (
@@ -53,12 +59,14 @@ function Userpage() {
 
   return (
     <>
-      { <UserHeader user={user} />}
-       { !fetchingPost && posts.length ===0 && <h1>No posts available</h1>}
-       { fetchingPost && <Flex justifyContent={"center"} my={12}>
-        <Spinner size='xl' />
-      </Flex>}
-      {posts.map((post) => (
+      <UserHeader user={user} />
+      {!fetchingPost && posts?.length === 0 && <h1>No posts available</h1>}
+      {fetchingPost && (
+        <Flex justifyContent={"center"} my={12}>
+          <Spinner size='xl' />
+        </Flex>
+      )}
+      {posts && posts.map((post) => (
         <ShowPost key={post._id} post={post} posted_by={post.posted_by} />
       ))}
     </>

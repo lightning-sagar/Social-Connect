@@ -5,7 +5,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil"
 function AuthPage() {
   const authScreenState = useRecoilValue( authScreenAtom );
   console.log( authScreenState );
-  useSetRecoilState( authScreenAtom, "login" );//by default login set keya h
+  useSetRecoilState( authScreenAtom, "login" ); 
   return (
     <div>
       { authScreenState === "login" ? <LoginCard/> : <SignupCard/> }

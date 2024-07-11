@@ -5,7 +5,7 @@ import user from "../models/user.js";
 import generateTokenAndSetCookie from "../utils/helper/cookies.js";
 import { v2 as cloudinary } from "cloudinary";
 import mongoose from "mongoose";
-
+import Post from "../models/post.js";
 const getuserProfile = async (req, res) => {
   const { query } = req.params;
 
@@ -88,6 +88,11 @@ const signupuser = async (req, res) => {
       if (!isPasswordCorrect) {
         return res.status(400).json({ error: 'Invalid credentials no pass' });
       }
+
+      if(user.isFrozen){
+        user.isFrozen = false;
+        await user.save();
+      }
   
       generateTokenAndSetCookie(user._id, res);
   
@@ -106,15 +111,17 @@ const signupuser = async (req, res) => {
   };
   
 const logoutuser = async(req,res)=>{
-    try {
-        res.cookie("jwt","",{maxAge:1});
-        res.status(200).json({error:"Successfully logged out"});
-    } catch (error) {
-        console.error(error);
-    }
+  try {
+		res.cookie("jwt", "", { maxAge: 1 });
+		res.status(200).json({ message: "User logged out successfully" });
+	} catch (err) {
+		res.status(500).json({ error: err.message });
+		console.log("Error in signupUser: ", err.message);
+	}
 }
 const followUnFollow = async (req, res) => {
   try {
+    console.log(req.params,"wo");
     const { userId } = req.params;
     const id = req.user._id.toString();
     const userToModify = await User.findById(userId);
@@ -146,6 +153,33 @@ const followUnFollow = async (req, res) => {
   }
 };
 
+const getSuggestedUsers = async (req, res) => {
+	try {
+		const userId = req.user._id;
+
+		const usersFollowedByYou = await User.findById(userId).select("following");
+
+		const users = await User.aggregate([
+			{
+				$match: {
+					_id: { $ne: userId },
+				},
+			},
+			{
+				$sample: { size: 10 },
+			},
+		]);
+		const filteredUsers = users.filter((user) => !usersFollowedByYou.following.includes(user._id));
+		const suggestedUsers = filteredUsers.slice(0, 4);
+
+		suggestedUsers.forEach((user) => (user.password = null));
+
+		res.status(200).json(suggestedUsers);
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+};
+ 
 const updateuser = async(req,res)=>{
     try {
         const {name,username,email,bio}=req.body;
@@ -180,7 +214,17 @@ const updateuser = async(req,res)=>{
             bio:bio || user.bio
         },{new:true});
 
-        //set pass null
+        await Post.updateMany(
+          { "replies.userId": userId },
+          {
+            $set: {
+              "replies.$[reply].username": username||user.username,
+              "replies.$[reply].userPic": user.userPic,
+            },
+          },
+          { arrayFilters: [{ "reply.userId": userId }] }
+        );
+
         updatedUser.password = null;
         if(updatedUser){
             res.status(200).json(updatedUser);
@@ -192,4 +236,20 @@ const updateuser = async(req,res)=>{
     }
 }
 
-export {signupuser,loginuser,logoutuser,followUnFollow,updateuser,getuserProfile}
+const freezeAccount = async (req, res) => {
+	try {
+		const user = await User.findById(req.user._id);
+		if (!user) {
+			return res.status(400).json({ error: "User not found" });
+		}
+
+		user.isFrozen = true;
+		await user.save();
+
+		res.status(200).json({ success: true });
+	} catch (error) {
+		res.status(500).json({ error: error.message });
+	}
+};
+
+export {signupuser,loginuser,logoutuser,followUnFollow,updateuser,getuserProfile,getSuggestedUsers,freezeAccount}
