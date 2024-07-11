@@ -76,4 +76,3 @@ We welcome contributions! Please fork the repository and submit pull requests fo
 ## Contact
 For any inquiries, please reach out to [lightningsagar0@gmail.com].
 
-```
