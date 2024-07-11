@@ -19,7 +19,7 @@ function Postpage() {
   const showToast = useShowToast();
   const currentUser = useRecoilValue(userAtom);
   const { pId } = useParams();
-  const currentPost = posts[0];
+  const currentPost = posts.find(post => post._id === pId);
 
   useEffect(() => {
     const getPost = async () => {
@@ -29,7 +29,8 @@ function Postpage() {
 
         if (data.error) {
           showToast("Error", data.error, "Error");
-        } 
+          return;
+        }
         setPosts([data]);
       } catch (error) {
         showToast("Error", error.message, "Error");
