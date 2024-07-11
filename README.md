@@ -1,4 +1,4 @@
-```markdown
+
 # Social-Connect
 
 ![Screenshot](https://github.com/lightning-sagar/Social-Connect/assets/139375536/20bb2465-cadd-485f-a658-c2267add35ec)
