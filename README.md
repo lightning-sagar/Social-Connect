@@ -1,9 +1,7 @@
-Sure, here is a README file for your project, `Social-Connect`:
-
 ```markdown
 # Social-Connect
 
-![Screenshot 2024-07-11 194751](https://github.com/lightning-sagar/Social-Connect/assets/139375536/20bb2465-cadd-485f-a658-c2267add35ec)
+![Screenshot](https://github.com/lightning-sagar/Social-Connect/assets/139375536/20bb2465-cadd-485f-a658-c2267add35ec)
 
 ## Project Overview
 Social-Connect is a versatile social media application that allows users to tweet, chat with other users, and follow them. The application is built using modern web technologies and provides a seamless and interactive user experience.
@@ -75,12 +73,7 @@ CLOUDINARY_URL=<your-cloudinary-url>
 ## Contributing
 We welcome contributions! Please fork the repository and submit pull requests for any features, bug fixes, or improvements.
 
-## License
-This project is licensed under the MIT License.
-
 ## Contact
-For any inquiries, please reach out to [your-email@example.com].
+For any inquiries, please reach out to [lightningsagar0@gmail.com].
 
 ```
-
-This README provides a comprehensive guide to understanding the project, setting it up, and running it. Ensure to replace `<repository-url>` with your actual repository URL and `your-email@example.com` with your actual email address.
